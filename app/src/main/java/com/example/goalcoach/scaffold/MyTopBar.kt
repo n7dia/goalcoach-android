@@ -36,16 +36,8 @@ fun MyTopBar(currentRoute: String?, navController: NavHostController) {
     val showSettingsMenu = currentRoute == NavItems.home.path
 
     // Display appropriate title on current screen
-    val title = when (currentRoute) {
-        NavItems.home.path -> "Home"
-        NavItems.places.path -> "Places"
-        NavItems.goals.path -> "Goals"
-        NavItems.addGoal.path -> "Add Goal"
-        NavItems.goalDetails.path -> "Goal Details"
-        NavItems.journal.path -> "Journal"
-        NavItems.insights.path -> "Insights"
-        else -> ""
-    }
+    val title = NavItems.all.find { it.path == currentRoute }?.title ?: ""
+
 
     TopAppBar(
         title = { Text(title) },

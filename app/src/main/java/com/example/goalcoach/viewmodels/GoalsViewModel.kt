@@ -11,8 +11,8 @@ import kotlinx.coroutines.flow.update
 class GoalsViewModel : ViewModel(){
 
     private val _goals = MutableStateFlow<List<Goal>>(
-        listOf(Goal("001", "nadia", GoalCategory.Education,"Learn Android", imageName = null, notes = "Review all lectures",0, System.currentTimeMillis(), null),
-                Goal("002", "nadia", GoalCategory.Physical,"Workout for 100 hours", imageName = null, notes = "Biking or swimming", 0, System.currentTimeMillis(), null))
+        listOf(Goal("001", "nadia", GoalCategory.Education,"Learn Android", notes = "Review all lectures",0, System.currentTimeMillis(), null),
+                Goal("002", "nadia", GoalCategory.Physical,"Workout for 100 hours", notes = "Biking or swimming", 0, System.currentTimeMillis(), null))
     )
     val goals : StateFlow<List<Goal>> = _goals
 
@@ -21,18 +21,25 @@ class GoalsViewModel : ViewModel(){
         title: String,
         category: GoalCategory,
         deadline: Long?,
-        notes: String
+        notes: String,
+        unsplashPhotoId: String? = null,
+        imageThumbUrl: String? = null,
+        imageRegularUrl: String? = null
     ) {
         val newGoal = Goal(
             id = java.util.UUID.randomUUID().toString(),
             userId = "nadia",
             category = category,
             title = title.trim(),
-            imageName = null,
             notes = notes,
             progress = 0,
             dateCreated = System.currentTimeMillis(),
-            deadline = deadline
+            deadline = deadline,
+
+            // Unsplash Image
+            unsplashPhotoId = unsplashPhotoId,
+            imageThumbUrl = imageThumbUrl,
+            imageRegularUrl = imageRegularUrl
         )
         _goals.update { it + newGoal }
     }
@@ -71,7 +78,10 @@ class GoalsViewModel : ViewModel(){
         title: String,
         category: GoalCategory,
         notes: String,
-        deadline: Long?
+        deadline: Long?,
+        unsplashPhotoId: String? = null,
+        imageThumbUrl: String? = null,
+        imageRegularUrl: String? = null
     ) {
         _goals.value = _goals.value.map { goal ->
             if (goal.id != goalId) goal
@@ -79,7 +89,11 @@ class GoalsViewModel : ViewModel(){
                 title = title.trim(),
                 category = category,
                 notes = notes.trim(),
-                deadline = deadline
+                deadline = deadline,
+                // Unsplash Image
+                unsplashPhotoId = unsplashPhotoId,
+                imageThumbUrl = imageThumbUrl,
+                imageRegularUrl = imageRegularUrl
             )
         }
     }

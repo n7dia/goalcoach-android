@@ -1,5 +1,6 @@
 package com.example.goalcoach.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +24,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -35,11 +37,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.goalcoach.viewmodels.GoalsViewModel
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -47,11 +47,18 @@ import com.example.goalcoach.models.GoalCategory
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight.Companion.Bold
+import coil.compose.AsyncImage
+import com.example.goalcoach.unsplashapi.UnsplashViewModel
 
 // Add goal screen also using for editing an existing goal
 @Composable
 fun AddGoalScreen(
     viewModel: GoalsViewModel,
+    unsplashViewModel: UnsplashViewModel,
     goalId: String? = null,
     onDone: () -> Unit,
     onCancel: () -> Unit
@@ -72,9 +79,10 @@ fun AddGoalScreen(
     var deadlineMillis by rememberSaveable { mutableStateOf<Long?>(null) }
     var showDatePicker by remember { mutableStateOf(false) }
 
-    // Image selector UI
-    var imageQuery by rememberSaveable { mutableStateOf("") }
-    var imageIndex by rememberSaveable { mutableIntStateOf(0) } // increments on refresh
+    // Store selected image
+    var selectedPhotoId by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedThumbUrl by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedRegularUrl by rememberSaveable { mutableStateOf<String?>(null) }
 
     // Notes
     var notes by rememberSaveable { mutableStateOf("") }
@@ -86,9 +94,9 @@ fun AddGoalScreen(
             categoryKey = g.category.key
             deadlineMillis = g.deadline
             notes = g.notes
-            // Image fields for later
-            // imageQuery = g.imageQuery
-            // imageIndex = g.imageIndex
+            selectedPhotoId = g.unsplashPhotoId
+            selectedThumbUrl = g.imageThumbUrl
+            selectedRegularUrl = g.imageRegularUrl
         }
     }
 
@@ -136,13 +144,33 @@ fun AddGoalScreen(
             )
         }
 
+
         // Image selector: search + preview
-        ImageSelector(
-            query = imageQuery,
-            onQueryChange = { imageQuery = it },
-            imageIndex = imageIndex,
-            onRefresh = { imageIndex++ }
+        UnsplashPhotoSection(
+            viewModel = unsplashViewModel,
+            initialPhotoId = existingGoal?.unsplashPhotoId,
+            initialThumbUrl = existingGoal?.imageThumbUrl,
+            initialRegularUrl = existingGoal?.imageRegularUrl,
+
+            selectedPhotoId = selectedPhotoId,
+            selectedThumbUrl = selectedThumbUrl,
+            selectedRegularUrl = selectedRegularUrl,
+
+            onAutoSelect = { photoId, thumbUrl, regularUrl ->
+                selectedPhotoId = photoId
+                selectedThumbUrl = thumbUrl
+                selectedRegularUrl = regularUrl
+            }
         )
+
+
+        // Selected image confirmation
+        selectedPhotoId?.let {
+            Text(
+                text = "Selected image: ${selectedPhotoId}",
+                style = MaterialTheme.typography.labelSmall
+            )
+        } ?: Text("")
 
         // Notes
         OutlinedTextField(
@@ -184,14 +212,20 @@ fun AddGoalScreen(
                             title = trimmedTitle,
                             category = category,
                             notes = trimmedNotes,
-                            deadline = deadlineMillis
+                            deadline = deadlineMillis,
+                            unsplashPhotoId = selectedPhotoId,
+                            imageThumbUrl = selectedThumbUrl,
+                            imageRegularUrl = selectedRegularUrl
                         )
                     } else {
                         viewModel.addGoal(
                             title = trimmedTitle,
                             category = category,
                             notes = trimmedNotes,
-                            deadline = deadlineMillis
+                            deadline = deadlineMillis,
+                            unsplashPhotoId = selectedPhotoId,
+                            imageThumbUrl = selectedThumbUrl,
+                            imageRegularUrl = selectedRegularUrl
                         )
                     }
 
@@ -304,14 +338,40 @@ private fun GoalDatePicker(
     }
 }
 
-
 @Composable
-private fun ImageSelector(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    imageIndex: Int,
-    onRefresh: () -> Unit
+fun UnsplashPhotoSection(
+    viewModel: UnsplashViewModel,
+    initialPhotoId: String? = null,
+    initialThumbUrl: String? = null,
+    initialRegularUrl: String? = null,
+
+    selectedPhotoId: String?,
+    selectedThumbUrl: String?,
+    selectedRegularUrl: String?,
+
+    onAutoSelect: (photoId: String?, thumbUrl: String?, regularUrl: String?) -> Unit
 ) {
+    val query by viewModel.queryInput.collectAsState()
+    val photo by viewModel.photo.collectAsState()
+    val error by viewModel.error.collectAsState()
+    val loading by viewModel.isLoading.collectAsState()
+
+    // Prefill for edit mode (only if Unsplash VM has no photo yet)
+    LaunchedEffect(initialPhotoId, initialThumbUrl, initialRegularUrl) {
+        val hasSelection = !selectedThumbUrl.isNullOrBlank() || !selectedRegularUrl.isNullOrBlank() || !selectedPhotoId.isNullOrBlank()
+        if (!hasSelection && (initialThumbUrl != null || initialRegularUrl != null || initialPhotoId != null)) {
+            onAutoSelect(initialPhotoId, initialThumbUrl, initialRegularUrl)
+        }
+    }
+
+
+    // Auto-select whenever the displayed photo changes (after search/refresh)
+    LaunchedEffect(photo?.id) {
+        photo?.let { p ->
+            onAutoSelect(p.id, p.urls.thumb, p.urls.regular)
+        }
+    }
+
     Text("Image", style = MaterialTheme.typography.titleMedium)
 
     Row(
@@ -321,20 +381,37 @@ private fun ImageSelector(
     ) {
         OutlinedTextField(
             value = query,
-            onValueChange = onQueryChange,
+            onValueChange = { viewModel.queryInput.value = it },
             label = { Text("Search term") },
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            singleLine = true
         )
 
+        // Refresh
         IconButton(
-            onClick = onRefresh,
-            enabled = query.isNotBlank()
+            onClick = { viewModel.refreshNext() },
+            enabled = query.trim().length >= 2 && !loading
         ) {
-            Icon(Icons.Default.Refresh, contentDescription = "Refresh image")
+            Icon(Icons.Default.Refresh, contentDescription = "Next image")
+        }
+
+        // Clear selection (works even if there is no current photo)
+        IconButton(
+            onClick = {
+                viewModel.clearSelection()
+                onAutoSelect(null, null, null)
+                      },
+            enabled = !loading
+        ) {
+            Icon(Icons.Default.Close, contentDescription = "Clear image")
         }
     }
 
-    // Preview placeholder
+    // Decide what image to show:
+    // 1) Current Unsplash result photo
+    // 2) Initial image in edit mode if no current photo
+    val previewUrl = selectedRegularUrl ?: selectedThumbUrl
+
     Surface(
         tonalElevation = 1.dp,
         shape = RoundedCornerShape(16.dp),
@@ -342,16 +419,64 @@ private fun ImageSelector(
             .fillMaxWidth()
             .height(160.dp)
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            val text = if (query.isBlank()) {
-                "Enter a term to preview an image"
-            } else {
-                "Image preview placeholder\nQuery: \"$query\"\nResult index: $imageIndex"
+        Box(modifier = Modifier.fillMaxSize()) {
+
+            // Image fills container
+            if (!previewUrl.isNullOrBlank()) {
+                AsyncImage(
+                    model = previewUrl,
+                    contentDescription = photo?.description ?: photo?.alt_description ?: "Selected image",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
             }
-            Text(text)
+
+            // One status message at a time (no overlaps)
+            when {
+                loading -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp))
+                    }
+                }
+
+                error != null -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        OverlayMessage("Error: $error")
+                    }
+                }
+
+                // "No results" case: query entered but photo is null
+                query.trim().length >= 2 && photo == null && previewUrl.isNullOrBlank() -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        OverlayMessage("No results. Try another search term.")
+                    }
+                }
+
+                // Blank query + no preview image
+                query.isBlank() && previewUrl.isNullOrBlank() -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        OverlayMessage("Enter a term to preview an image")
+                    }
+                }
+            }
         }
+    }
+}
+
+
+@Composable
+private fun OverlayMessage(text: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.70f)),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text, style = MaterialTheme.typography.bodyMedium, fontWeight = Bold)
     }
 }

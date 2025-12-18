@@ -14,6 +14,7 @@ import com.example.goalcoach.screens.InsightsScreen
 import com.example.goalcoach.screens.JournalScreen
 import com.example.goalcoach.screens.LoginScreen
 import com.example.goalcoach.screens.PlacesScreen
+import com.example.goalcoach.unsplashapi.UnsplashViewModel
 import com.example.goalcoach.viewmodels.GoalsViewModel
 
 
@@ -44,7 +45,7 @@ fun MyNavHost(navController: NavHostController, modifier: Modifier = Modifier){
         }
 
         // BOTTOM BAR SCREENS
-        composable(route = NavItems.home.path ) { HomeScreen() }
+        composable(route = NavItems.home.path ) { HomeScreen(viewModel = goalsViewModel) }
         composable(route = NavItems.journal.path ) { JournalScreen() }
         composable(route = NavItems.insights.path ) {
             InsightsScreen(
@@ -76,8 +77,13 @@ fun MyNavHost(navController: NavHostController, modifier: Modifier = Modifier){
         composable(route = NavItems.places.path ) { PlacesScreen() }
 
         // Add Goal and Goal Details screens accessible from Goals screen
-        composable(route = NavItems.addGoal.path ) { AddGoalScreen(
+        composable(route = NavItems.addGoal.path ) {backStackEntry ->
+
+            val unsplashVm: UnsplashViewModel = viewModel(backStackEntry)
+
+            AddGoalScreen(
             viewModel = goalsViewModel,
+            unsplashViewModel = unsplashVm,
             onDone = { navController.navigateUp() },
             onCancel = { navController.navigateUp() }
         ) }
@@ -93,9 +99,11 @@ fun MyNavHost(navController: NavHostController, modifier: Modifier = Modifier){
         // Edit goals navigation
         composable(route = NavItems.editGoal.path) { backStackEntry ->
             val goalId = backStackEntry.arguments?.getString("goalId") ?: return@composable
+            val unsplashVm: UnsplashViewModel = viewModel(backStackEntry)
 
             AddGoalScreen(
                 viewModel = goalsViewModel,
+                unsplashViewModel = unsplashVm,
                 goalId = goalId,
                 onDone = { navController.popBackStack() },
                 onCancel = { navController.popBackStack() }

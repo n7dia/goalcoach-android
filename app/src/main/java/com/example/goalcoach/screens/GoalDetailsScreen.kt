@@ -38,7 +38,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.goalcoach.viewmodels.GoalsViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -127,7 +131,25 @@ fun GoalDetailsScreen(
                                 .background(MaterialTheme.colorScheme.surfaceVariant),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("IMG", style = MaterialTheme.typography.labelLarge)
+                            val context = LocalContext.current
+
+                            if (goal.imageThumbUrl.isNullOrBlank()) {
+                                Box(Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center) {
+                                    Text("IMG", style = MaterialTheme.typography.labelLarge)
+                                }
+                            } else {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(context)
+                                        .data(goal.imageThumbUrl)
+                                        .crossfade(true)
+                                        .size(112) // Decode close to 56dp*2 (safe for memory)
+                                        .build(),
+                                    contentDescription = goal.title,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
                         }
                     }
 

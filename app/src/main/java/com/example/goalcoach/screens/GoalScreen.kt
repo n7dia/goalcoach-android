@@ -38,10 +38,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.goalcoach.scaffold.MyFAB
 import com.example.goalcoach.viewmodels.GoalsViewModel
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import androidx.compose.ui.layout.ContentScale
 
 @Composable
 fun GoalScreen(
@@ -90,6 +94,7 @@ fun GoalScreen(
                     GoalRow(
                         title = goal.title,
                         category = goal.category.key,
+                        imageThumbUrl = goal.imageThumbUrl,
                         onOpen = { onGoalClick(goal.id) },
                         onEdit = { onEditGoal(goal.id) },
                         onDelete = { viewModel.deleteGoal(goal.id) }
@@ -104,6 +109,7 @@ fun GoalScreen(
 private fun GoalRow(
     title: String,
     category: String,
+    imageThumbUrl: String?,
     onOpen: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit
@@ -147,12 +153,26 @@ private fun GoalRow(
                 tonalElevation = 1.dp,
                 modifier = Modifier.size(56.dp)
             ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("IMG", style = MaterialTheme.typography.labelLarge)
+                val context = LocalContext.current
+
+                if (imageThumbUrl.isNullOrBlank()) {
+                    Box(Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center) {
+                        Text("IMG", style = MaterialTheme.typography.labelLarge)
+                    }
+                } else {
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(imageThumbUrl)
+                            .crossfade(true)
+                            .size(112) // Decode close to 56dp*2 (safe for memory)
+                            .build(),
+                        contentDescription = title,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
+
             }
 
             // Text column wrapped in a clickable area

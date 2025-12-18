@@ -6,12 +6,16 @@ data class Goal(
     val userId: String,
     val category: GoalCategory,
     val title: String,
-    val imageName: String? = null,
     val notes: String,
     val progress: Int,
     val dateCreated: Long,
     val deadline: Long?,
-    val dateCompleted: Long? = null
+    val dateCompleted: Long? = null,
+
+    // Image picked from Unsplash. Thumb for list. Regular for vision boaard.
+    val unsplashPhotoId: String? = null,
+    val imageThumbUrl: String? = null,
+    val imageRegularUrl: String? = null,
 ){
     val isCompleted: Boolean
         get() = progress >= 100

@@ -24,7 +24,7 @@ import com.example.goalcoach.navigation.NavItems
 //      navController: navigation controller handles navigation actions
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyTopBar(currentRoute: String?, navController: NavHostController) {
+fun MyTopBar(currentRoute: String?, navController: NavHostController, onLogout: () -> Unit) {
     // Show back button only when the current screen is a detail screens (Boolean)
     val showBackButton = currentRoute in listOf(
         NavItems.places.path,
@@ -77,10 +77,7 @@ fun MyTopBar(currentRoute: String?, navController: NavHostController) {
                         text = { Text("Logout") },
                         onClick = {
                             expanded = false
-                            navController.navigate(NavItems.login.path){
-                                // Clear the back stack when logging out including the destination
-                                popUpTo(0) { inclusive = true }
-                            }
+                            onLogout()
                         }
                     )
                 }

@@ -8,11 +8,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.goalcoach.authentication.AuthViewModel
 import com.example.goalcoach.navigation.MyNavHost
 import com.example.goalcoach.navigation.NavItems
 import com.example.goalcoach.scaffold.MyBottomBar
@@ -27,10 +31,30 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            // Set up navigation controller and observe current route
+            // Set up navigation controller
             val navController = rememberNavController()
+
+            // create/keep AuthViewModel at the top level
+            val authViewModel: AuthViewModel = viewModel()
+            val authState by authViewModel.state.collectAsState()
+
+            // Observe current route
             val currentNavObject by navController.currentBackStackEntryAsState()
             val currentRoute = currentNavObject?.destination?.route
+
+            // Redirect based on auth state
+            LaunchedEffect(authState.isLoggedIn) {
+                val target = if (authState.isLoggedIn) NavItems.home.path else NavItems.login.path
+
+                // avoid re-navigating to same destination
+                if (currentRoute != target) {
+                    navController.navigate(target) {
+                        // Clear back stack so user can't go "back" to wrong graph state
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            }
 
             GoalCoachTheme {
                 Scaffold(
@@ -39,7 +63,8 @@ class MainActivity : ComponentActivity() {
                         if (currentRoute != NavItems.login.path) {
                             MyTopBar(
                                 currentRoute = currentRoute,
-                                navController = navController
+                                navController = navController,
+                                onLogout = { authViewModel.signOut() }
                             )
                         }
                     },
@@ -73,7 +98,7 @@ class MainActivity : ComponentActivity() {
                 ) { innerPadding ->
                     // Apply padding from top/bottom bars and display navigation host
                     Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
-                        MyNavHost(navController)
+                        MyNavHost(navController = navController, authViewModel = authViewModel)
                     }
                 }
             }

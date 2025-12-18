@@ -6,6 +6,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.goalcoach.authentication.AuthViewModel
 import com.example.goalcoach.screens.AddGoalScreen
 import com.example.goalcoach.screens.GoalDetailsScreen
 import com.example.goalcoach.screens.GoalScreen
@@ -21,7 +22,7 @@ import com.example.goalcoach.viewmodels.GoalsViewModel
 // Navigation host (navigation graph) defines all app screens and their routes.
 //      navController: controls navigation between screens
 @Composable
-fun MyNavHost(navController: NavHostController, modifier: Modifier = Modifier){
+fun MyNavHost(navController: NavHostController, authViewModel: AuthViewModel, modifier: Modifier = Modifier){
 
     // Create one instance of GoalsViewModel shared by goals-related screens
     val goalsViewModel: GoalsViewModel = viewModel()
@@ -34,18 +35,14 @@ fun MyNavHost(navController: NavHostController, modifier: Modifier = Modifier){
     ){
         // Login screen entry point of the app. Navigates to home onLoginSuccess.
         composable(route = NavItems.login.path) {
-            LoginScreen(
-                onLoginSuccess = {
-                    navController.navigate(NavItems.home.path) {
-                        // Clear back stack so user can't navigate back to login
-                        popUpTo(NavItems.login.path) { inclusive = true }
-                    }
-                }
-            )
+            LoginScreen(vm = authViewModel)
         }
 
         // BOTTOM BAR SCREENS
-        composable(route = NavItems.home.path ) { HomeScreen(viewModel = goalsViewModel) }
+        composable(route = NavItems.home.path ) {
+            HomeScreen(
+                authViewModel = authViewModel, viewModel = goalsViewModel
+            ) }
         composable(route = NavItems.journal.path ) { JournalScreen() }
         composable(route = NavItems.insights.path ) {
             InsightsScreen(

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "345497100360",
+    "project_id": "goalcoach-4551a",
+    "storage_bucket": "goalcoach-4551a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:345497100360:android:cfefa9258e37516495787d",
+        "android_client_info": {
+          "package_name": "com.example.goalcoach"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCAv8CNFL4banX9dyAV2h0dnm2ioLLHsE8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

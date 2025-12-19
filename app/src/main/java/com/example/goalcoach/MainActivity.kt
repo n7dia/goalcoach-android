@@ -22,10 +22,13 @@ import com.example.goalcoach.navigation.NavItems
 import com.example.goalcoach.scaffold.MyBottomBar
 import com.example.goalcoach.scaffold.MyTopBar
 import com.example.goalcoach.ui.theme.GoalCoachTheme
+import dagger.hilt.android.AndroidEntryPoint
+import androidx.hilt.navigation.compose.hiltViewModel
 
 
 // Main activity hosts the entire app navigation and UI structure,
 //      sets up the navigation controller and scaffold with top/bottom bars.
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,7 +38,7 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
 
             // create/keep AuthViewModel at the top level
-            val authViewModel: AuthViewModel = viewModel()
+            val authViewModel: AuthViewModel = hiltViewModel()
             val authState by authViewModel.state.collectAsState()
 
             // Observe current route
@@ -105,3 +108,4 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+

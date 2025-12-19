@@ -38,10 +38,12 @@ import coil.request.ImageRequest
 import com.example.goalcoach.authentication.AuthViewModel
 import com.example.goalcoach.models.Goal
 import com.example.goalcoach.viewmodels.GoalsViewModel
-
+import androidx.compose.foundation.clickable
 
 @Composable
-fun HomeScreen(authViewModel: AuthViewModel, viewModel: GoalsViewModel) {
+fun HomeScreen(authViewModel: AuthViewModel,
+               viewModel: GoalsViewModel,
+               onGoalClick: (String) -> Unit) {
 
     // State for username
     val authState by authViewModel.state.collectAsState()
@@ -86,7 +88,8 @@ fun HomeScreen(authViewModel: AuthViewModel, viewModel: GoalsViewModel) {
         VisionBoardTheme {
             VisionBoard(
             goals = pendingGoals,
-            modifier = Modifier
+            modifier = Modifier,
+                onGoalClick = onGoalClick
             )
         }
 
@@ -96,7 +99,8 @@ fun HomeScreen(authViewModel: AuthViewModel, viewModel: GoalsViewModel) {
 @Composable
 fun VisionBoard(
     goals: List<Goal>,
-    modifier: Modifier
+    modifier: Modifier,
+    onGoalClick: (String) -> Unit
 ) {
     // Sort goals by date of creation
     val sortedGoals = goals.sortedBy { it.dateCreated }.take(6)
@@ -122,7 +126,8 @@ fun VisionBoard(
             modifier = modifier.fillMaxSize()
         ) {
             items(sortedGoals) { goal ->
-                GoalCard(goal = goal)
+                GoalCard(goal = goal,
+                    Modifier.clickable{ onGoalClick(goal.id) })
             }
         }
     }

@@ -2,7 +2,9 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("com.google.gms.google-services")
+    id("com.google.gms.google-services")    // firebase authentication
+    id("kotlin-kapt")                       //  Hilt + Room compiler
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -40,8 +42,9 @@ android {
     buildFeatures {
         compose = true
     }
-}
 
+}
+val roomVersion =
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -66,7 +69,7 @@ dependencies {
 
     // Retrofit
     implementation("com.squareup.retrofit2:retrofit:3.0.0")
-// Retrofit with Scalar Converter
+    // Retrofit with Scalar Converter
     implementation("com.squareup.retrofit2:converter-gson:3.0.0")
 
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
@@ -77,4 +80,19 @@ dependencies {
     // Firebase BOM (keeps versions aligned)
     implementation(platform("com.google.firebase:firebase-bom:34.7.0"))
     implementation("com.google.firebase:firebase-auth")
+
+    // Hilt
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    implementation("com.google.dagger:hilt-android:2.57.2")
+    kapt("com.google.dagger:hilt-android-compiler:2.57.2")
+
+
+    // Room
+    implementation("androidx.room:room-runtime:2.8.4")
+    implementation("androidx.room:room-ktx:2.8.4")
+    kapt("androidx.room:room-compiler:2.8.4")
+}
+
+kapt {
+    correctErrorTypes = true
 }

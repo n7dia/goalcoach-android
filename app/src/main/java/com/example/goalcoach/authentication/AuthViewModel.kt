@@ -2,9 +2,11 @@ package com.example.goalcoach.authentication
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class AuthUiState(
     val email: String = "",
@@ -16,8 +18,9 @@ data class AuthUiState(
     val userEmail: String? = null
 )
 
-class AuthViewModel(
-    private val repo: AuthRepository = AuthRepository()
+@HiltViewModel
+class AuthViewModel @Inject constructor(
+    private val repo: AuthRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(
@@ -92,6 +95,6 @@ class AuthViewModel(
 
     fun signOut() {
         repo.signOut()
-        _state.value = _state.value.copy(isLoggedIn = false)
+        _state.value = AuthUiState() // resets isLoggedIn, userId, userEmail, etc.
     }
 }

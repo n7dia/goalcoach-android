@@ -1,20 +1,48 @@
 package com.example.goalcoach.viewmodels
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.goalcoach.authentication.AuthRepository
 import com.example.goalcoach.models.Goal
 import com.example.goalcoach.models.GoalCategory
+import com.example.goalcoach.room.GoalEntity
+import com.example.goalcoach.room.GoalRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
+@HiltViewModel
+class GoalsViewModel @Inject constructor(
+    private val repo: GoalRepository,
+    private val authRepo: AuthRepository
+) : ViewModel(){
 
-class GoalsViewModel : ViewModel(){
+    // currentUserId() as a function because the Firebase user can change while the ViewModel is alive.
+    // A val would freeze the value once.
+    private fun currentUserId(): String? = authRepo.currentUser?.uid
 
-    private val _goals = MutableStateFlow<List<Goal>>(
-        listOf(Goal("001", "nadia", GoalCategory.Education,"Learn Android", notes = "Review all lectures",0, System.currentTimeMillis(), null),
-                Goal("002", "nadia", GoalCategory.Physical,"Workout for 100 hours", notes = "Biking or swimming", 0, System.currentTimeMillis(), null))
-    )
-    val goals : StateFlow<List<Goal>> = _goals
+    // Goals from room database. Switch queries when userid changes.
+    val goals: StateFlow<List<Goal>> =
+        authRepo.uidFlow
+            .flatMapLatest { uid ->
+                if (uid == null) {
+                    repo.observeGoalsForUser("__NO_USER__") // returns empty
+                } else {
+                    repo.observeGoalsForUser(uid)
+                }
+            }            .map { entities -> entities.map { it.toDomain() } }
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5_000),
+                emptyList()
+            )
 
 
     fun addGoal(
@@ -26,9 +54,12 @@ class GoalsViewModel : ViewModel(){
         imageThumbUrl: String? = null,
         imageRegularUrl: String? = null
     ) {
+        // return if null so you never save “unknown user” goals
+        val userid = authRepo.currentUser?.uid ?: return
+
         val newGoal = Goal(
             id = java.util.UUID.randomUUID().toString(),
-            userId = "nadia",
+            userId = userid,
             category = category,
             title = title.trim(),
             notes = notes,
@@ -41,36 +72,43 @@ class GoalsViewModel : ViewModel(){
             imageThumbUrl = imageThumbUrl,
             imageRegularUrl = imageRegularUrl
         )
-        _goals.update { it + newGoal }
+
+        // Add to room
+        viewModelScope.launch {
+            repo.upsert(newGoal.toEntity())
+        }
     }
 
     fun updateGoalProgress(goalId: String, newProgress: Int) {
         val p = newProgress.coerceIn(0, 100)
         val now = System.currentTimeMillis()
 
-        _goals.value = _goals.value.map { goal ->
-            if (goal.id != goalId) return@map goal
+        viewModelScope.launch {
+            val goal = goals.value.firstOrNull { it.id == goalId } ?: return@launch
 
             val wasCompleted = goal.progress >= 100
             val isCompletedNow = p >= 100
 
             val completedDate =
                 when {
-                    !wasCompleted && isCompletedNow -> now          // just completed
-                    wasCompleted && !isCompletedNow -> null         // un-completed
-                    else -> goal.dateCompleted                      // unchanged
+                    !wasCompleted && isCompletedNow -> now
+                    wasCompleted && !isCompletedNow -> null
+                    else -> goal.dateCompleted
                 }
 
-            goal.copy(
-                progress = p,
-                dateCompleted = completedDate
+            repo.upsert(
+                goal.copy(
+                    progress = p,
+                    dateCompleted = completedDate
+                ).toEntity()
             )
         }
     }
 
     fun deleteGoal(goalId: String) {
-        _goals.value = _goals.value.filterNot { it.id == goalId }
-
+        viewModelScope.launch {
+            repo.delete(goalId)
+        }
     }
 
     fun updateGoal(
@@ -83,19 +121,51 @@ class GoalsViewModel : ViewModel(){
         imageThumbUrl: String? = null,
         imageRegularUrl: String? = null
     ) {
-        _goals.value = _goals.value.map { goal ->
-            if (goal.id != goalId) goal
-            else goal.copy(
-                title = title.trim(),
-                category = category,
-                notes = notes.trim(),
-                deadline = deadline,
-                // Unsplash Image
-                unsplashPhotoId = unsplashPhotoId,
-                imageThumbUrl = imageThumbUrl,
-                imageRegularUrl = imageRegularUrl
+        viewModelScope.launch {
+            val goal = goals.value.firstOrNull { it.id == goalId } ?: return@launch
+
+            repo.upsert(
+                goal.copy(
+                    title = title.trim(),
+                    category = category,
+                    notes = notes.trim(),
+                    deadline = deadline,
+                    unsplashPhotoId = unsplashPhotoId,
+                    imageThumbUrl = imageThumbUrl,
+                    imageRegularUrl = imageRegularUrl
+                ).toEntity()
             )
         }
     }
 
 }
+
+private fun GoalEntity.toDomain(): Goal = Goal(
+    id = id,
+    userId = userId,
+    category = GoalCategory.fromKey(categoryKey), // you need this helper or equivalent
+    title = title,
+    notes = notes,
+    progress = progress,
+    dateCreated = dateCreated,
+    deadline = deadline,
+    dateCompleted = dateCompleted,
+    unsplashPhotoId = unsplashPhotoId,
+    imageThumbUrl = imageThumbUrl,
+    imageRegularUrl = imageRegularUrl
+)
+
+private fun Goal.toEntity(): GoalEntity = GoalEntity(
+    id = id,
+    userId = userId,
+    categoryKey = category.key,   // adjust if your enum stores key differently
+    title = title,
+    notes = notes,
+    progress = progress,
+    dateCreated = dateCreated,
+    deadline = deadline,
+    dateCompleted = dateCompleted,
+    unsplashPhotoId = unsplashPhotoId,
+    imageThumbUrl = imageThumbUrl,
+    imageRegularUrl = imageRegularUrl
+)

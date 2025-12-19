@@ -55,7 +55,7 @@ fun GoalScreen(
     onEditGoal: (String) -> Unit
 ) {
     val goals = viewModel.goals.collectAsState().value
-    val pendingGoals = remember(goals) { goals.filter { !it.isCompleted } }
+    val pendingGoals = remember(goals) { goals.filter { !it.isCompleted } }.sortedBy { it.dateCreated }
 
     Scaffold(
         floatingActionButton = {

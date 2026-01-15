@@ -14,13 +14,17 @@ import javax.inject.Singleton
 object DatabaseModule {
     @Provides
     @Singleton
-    fun provideDatabase(@ApplicationContext context: Context): GoalsDatabase =
+    fun provideDatabase(@ApplicationContext context: Context): AppDatabase =
         Room.databaseBuilder(
-            context,
-            GoalsDatabase::class.java,
-            "goalcoach.db"
-        ).build()
+                context,
+                AppDatabase::class.java,
+                "goalcoach.db"
+            ).fallbackToDestructiveMigration(true)
+        .build()
 
     @Provides
-    fun provideGoalDao(db: GoalsDatabase): GoalDao = db.goalDao()
+    fun provideGoalDao(db: AppDatabase): GoalDao = db.goalDao()
+
+    @Provides
+    fun provideJournalDao(db: AppDatabase): JournalDao = db.journalDao()
 }

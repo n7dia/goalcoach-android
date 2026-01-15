@@ -7,6 +7,8 @@ import com.example.goalcoach.models.Goal
 import com.example.goalcoach.models.GoalCategory
 import com.example.goalcoach.room.GoalEntity
 import com.example.goalcoach.room.GoalRepository
+import com.example.goalcoach.room.toDomain
+import com.example.goalcoach.room.toEntity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -140,32 +142,3 @@ class GoalsViewModel @Inject constructor(
 
 }
 
-private fun GoalEntity.toDomain(): Goal = Goal(
-    id = id,
-    userId = userId,
-    category = GoalCategory.fromKey(categoryKey), // you need this helper or equivalent
-    title = title,
-    notes = notes,
-    progress = progress,
-    dateCreated = dateCreated,
-    deadline = deadline,
-    dateCompleted = dateCompleted,
-    unsplashPhotoId = unsplashPhotoId,
-    imageThumbUrl = imageThumbUrl,
-    imageRegularUrl = imageRegularUrl
-)
-
-private fun Goal.toEntity(): GoalEntity = GoalEntity(
-    id = id,
-    userId = userId,
-    categoryKey = category.key,   // adjust if your enum stores key differently
-    title = title,
-    notes = notes,
-    progress = progress,
-    dateCreated = dateCreated,
-    deadline = deadline,
-    dateCompleted = dateCompleted,
-    unsplashPhotoId = unsplashPhotoId,
-    imageThumbUrl = imageThumbUrl,
-    imageRegularUrl = imageRegularUrl
-)

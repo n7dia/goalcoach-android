@@ -12,7 +12,7 @@ data class Goal(
     val deadline: Long?,
     val dateCompleted: Long? = null,
 
-    // Image picked from Unsplash. Thumb for list. Regular for vision boaard.
+    // Image picked from Unsplash. Thumb for list. Regular for vision board.
     val unsplashPhotoId: String? = null,
     val imageThumbUrl: String? = null,
     val imageRegularUrl: String? = null,

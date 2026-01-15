@@ -18,6 +18,7 @@ import com.example.goalcoach.screens.PlacesScreen
 import com.example.goalcoach.unsplashapi.UnsplashViewModel
 import com.example.goalcoach.viewmodels.GoalsViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.goalcoach.viewmodels.JournalViewModel
 
 
 // Navigation host (navigation graph) defines all app screens and their routes.
@@ -50,7 +51,14 @@ fun MyNavHost(navController: NavHostController, authViewModel: AuthViewModel, mo
                         NavItems.goalDetails.createRoute(goalId)
                     ) }
             ) }
-        composable(route = NavItems.journal.path ) { JournalScreen() }
+        composable(route = NavItems.journal.path ) {
+            val journalViewModel: JournalViewModel = hiltViewModel()
+
+            JournalScreen(
+                viewModel = goalsViewModel,
+                journalViewModel = journalViewModel
+            )
+        }
         composable(route = NavItems.insights.path ) {
             InsightsScreen(
                 viewModel = goalsViewModel,

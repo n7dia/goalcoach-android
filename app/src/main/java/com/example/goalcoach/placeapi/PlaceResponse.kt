@@ -1,0 +1,26 @@
+package com.example.goalcoach.placeapi
+
+import com.example.goalcoach.models.NominatimAddress
+
+
+data class PlacesResponse(
+    val elements: List<OverpassElement> = emptyList()
+)
+
+data class OverpassElement(
+    val type: String,
+    val id: Long,
+    val lat: Double? = null,
+    val lon: Double? = null,
+    val center: OverpassCenter? = null,
+    val tags: Map<String, String>? = null
+)
+
+data class OverpassCenter(
+    val lat: Double,
+    val lon: Double
+)
+
+data class NominatimReverseResponse(
+    val address: NominatimAddress? = null
+)

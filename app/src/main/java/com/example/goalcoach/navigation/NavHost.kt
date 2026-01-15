@@ -19,6 +19,7 @@ import com.example.goalcoach.unsplashapi.UnsplashViewModel
 import com.example.goalcoach.viewmodels.GoalsViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.goalcoach.viewmodels.JournalViewModel
+import com.example.goalcoach.viewmodels.PlacesViewModel
 
 
 // Navigation host (navigation graph) defines all app screens and their routes.
@@ -86,7 +87,10 @@ fun MyNavHost(navController: NavHostController, authViewModel: AuthViewModel, mo
 
         // DETAIL SCREENS
         // Places screen accessible from Home settings menu
-        composable(route = NavItems.places.path ) { PlacesScreen() }
+        composable(route = NavItems.places.path ) {
+            val placesViewModel: PlacesViewModel = hiltViewModel()
+            PlacesScreen(vm = placesViewModel)
+        }
 
         // ADD GOAL NAVIGATION
         composable(route = NavItems.addGoal.path ) {backStackEntry ->

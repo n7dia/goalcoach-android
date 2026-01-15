@@ -5,13 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.example.goalcoach.authentication.AuthRepository
 import com.example.goalcoach.models.Goal
 import com.example.goalcoach.models.GoalCategory
-import com.example.goalcoach.room.GoalEntity
 import com.example.goalcoach.room.GoalRepository
 import com.example.goalcoach.room.toDomain
 import com.example.goalcoach.room.toEntity
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flatMapLatest

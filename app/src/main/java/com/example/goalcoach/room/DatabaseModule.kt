@@ -27,4 +27,7 @@ object DatabaseModule {
 
     @Provides
     fun provideJournalDao(db: AppDatabase): JournalDao = db.journalDao()
+
+    @Provides
+    fun providePlaceDao(db: AppDatabase): PlaceDao = db.placeDao()
 }

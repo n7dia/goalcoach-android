@@ -1,28 +1,21 @@
 package com.example.goalcoach.authentication
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 
-data class AuthUiState(
-    val email: String = "",
-    val password: String = "",
-    val isLoading: Boolean = false,
-    val error: String? = null,
-    val isLoggedIn: Boolean = false,
-    val userId: String? = null,
-    val userEmail: String? = null
-)
 
+// ViewModel responsible for authentication UI state and actions.
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val repo: AuthRepository
 ) : ViewModel() {
 
+    // Backing state initialized from the current Firebase user
     private val _state = MutableStateFlow(
         AuthUiState(
             isLoggedIn = repo.currentUser != null,
@@ -30,11 +23,17 @@ class AuthViewModel @Inject constructor(
             userEmail = repo.currentUser?.email
         )
     )
+
+    // Public immutable state observed by the UI
     val state: StateFlow<AuthUiState> = _state
 
+    // Update email input
     fun onEmailChange(v: String) = _state.value.let { _state.value = it.copy(email = v) }
+
+    // Update password input
     fun onPasswordChange(v: String) = _state.value.let { _state.value = it.copy(password = v) }
 
+    // Sign in an existing user
     fun signIn() = viewModelScope.launch {
         _state.value = _state.value.copy(isLoading = true, error = null)
 
@@ -45,10 +44,8 @@ class AuthViewModel @Inject constructor(
                 _state.value.password
             )
 
-            // READ THE AUTHENTICATED USER HERE
+            // Read authenticated user and update state
             val user = repo.currentUser
-
-            // STORE USER INFO IN STATE
             _state.value = _state.value.copy(
                 isLoading = false,
                 isLoggedIn = true,
@@ -64,6 +61,7 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    // Create a new account and sign the user in
     fun signUp() = viewModelScope.launch {
         _state.value = _state.value.copy(isLoading = true, error = null)
 
@@ -74,10 +72,8 @@ class AuthViewModel @Inject constructor(
                 _state.value.password
             )
 
-            // READ THE AUTHENTICATED USER HERE
+            // Read authenticated user and update state
             val user = repo.currentUser
-
-            // STORE USER INFO IN STATE
             _state.value = _state.value.copy(
                 isLoading = false,
                 isLoggedIn = true,
@@ -93,8 +89,9 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    // Sign out and reset UI state (resets isLoggedIn, userId, userEmail, etc.)
     fun signOut() {
         repo.signOut()
-        _state.value = AuthUiState() // resets isLoggedIn, userId, userEmail, etc.
+        _state.value = AuthUiState()
     }
 }

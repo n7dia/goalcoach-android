@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.sp
 import com.example.goalcoach.viewmodels.GoalsViewModel
 import com.example.goalcoach.viewmodels.JournalViewModel
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun JournalScreen(

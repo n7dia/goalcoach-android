@@ -12,21 +12,20 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import dagger.hilt.android.AndroidEntryPoint
 import com.example.goalcoach.authentication.AuthViewModel
 import com.example.goalcoach.navigation.MyNavHost
 import com.example.goalcoach.navigation.NavItems
 import com.example.goalcoach.scaffold.MyBottomBar
 import com.example.goalcoach.scaffold.MyTopBar
 import com.example.goalcoach.ui.theme.GoalCoachTheme
-import dagger.hilt.android.AndroidEntryPoint
-import androidx.hilt.navigation.compose.hiltViewModel
 
 
-// Main activity hosts the entire app navigation and UI structure,
-//      sets up the navigation controller and scaffold with top/bottom bars.
+// Main activity that hosts the entire app UI and navigation
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,7 +35,7 @@ class MainActivity : ComponentActivity() {
             // Set up navigation controller
             val navController = rememberNavController()
 
-            // create/keep AuthViewModel at the top level
+            // AuthViewModel lives at the top level
             val authViewModel: AuthViewModel = hiltViewModel()
             val authState by authViewModel.state.collectAsState()
 
@@ -60,7 +59,7 @@ class MainActivity : ComponentActivity() {
 
             GoalCoachTheme {
                 Scaffold(
-                    // Hide top bar only on login screen for cleaner UI
+                    // Top bar shown on all screens except login
                     topBar = {
                         if (currentRoute != NavItems.login.path) {
                             MyTopBar(
@@ -70,7 +69,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                     },
-                    // Show bottom bar only on main navigation screens
+                    // Bottom bar shown only on main app screens
                     bottomBar = {
                         if (currentRoute in listOf(
                                 NavItems.home.path,
@@ -83,8 +82,7 @@ class MainActivity : ComponentActivity() {
                                 currentRoute = currentRoute,
                                 onNavigate = { path ->
                                     navController.navigate(path) {
-                                        // Pop up to the start destination to avoid building a large back stack
-                                        // when switching between bottom bar items (clears back stack)
+                                        // Switch tabs without growing back stack
                                         popUpTo(navController.graph.findStartDestination().id) {
                                             saveState = true  // Save screen state for restoration
                                         }
@@ -98,7 +96,7 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 ) { innerPadding ->
-                    // Apply padding from top/bottom bars and display navigation host
+                    // Host the navigation graph
                     Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
                         MyNavHost(navController = navController, authViewModel = authViewModel)
                     }

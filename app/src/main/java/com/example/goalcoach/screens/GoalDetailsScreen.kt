@@ -1,5 +1,9 @@
 package com.example.goalcoach.screens
 
+import kotlin.math.max
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,10 +48,8 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.goalcoach.viewmodels.GoalsViewModel
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import kotlin.math.max
+
+
 
 @Composable
 fun GoalDetailsScreen(

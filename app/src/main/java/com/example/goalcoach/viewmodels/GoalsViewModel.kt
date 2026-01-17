@@ -1,49 +1,51 @@
 package com.example.goalcoach.viewmodels
 
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import com.example.goalcoach.authentication.AuthRepository
 import com.example.goalcoach.models.Goal
 import com.example.goalcoach.models.GoalCategory
 import com.example.goalcoach.room.GoalRepository
 import com.example.goalcoach.room.toDomain
 import com.example.goalcoach.room.toEntity
-import kotlinx.coroutines.flow.StateFlow
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
-import javax.inject.Inject
+
 
 @HiltViewModel
 class GoalsViewModel @Inject constructor(
     private val repo: GoalRepository,
     private val authRepo: AuthRepository
-) : ViewModel(){
+) : ViewModel() {
 
-    // currentUserId() as a function because the Firebase user can change while the ViewModel is alive.
-    // A val would freeze the value once.
+    // Helper to get the current user id (null if signed out)
     private fun currentUserId(): String? = authRepo.currentUser?.uid
 
-    // Goals from room database. Switch queries when userid changes.
+    // Goals for the signed-in user
+    // Automatically switches to the correct user when auth state changes
     val goals: StateFlow<List<Goal>> =
         authRepo.uidFlow
             .flatMapLatest { uid ->
-                if (uid == null) {
-                    repo.observeGoalsForUser("__NO_USER__") // returns empty
-                } else {
-                    repo.observeGoalsForUser(uid)
-                }
-            }            .map { entities -> entities.map { it.toDomain() } }
+                // If signed out, return an empty list
+                if (uid == null) repo.observeGoalsForUser("__NO_USER__")
+                else repo.observeGoalsForUser(uid)
+            }
+            // Convert database entities to domain models
+            .map { entities -> entities.map { it.toDomain() } }
+            // Keep the latest list in memory for the UI
             .stateIn(
                 viewModelScope,
                 SharingStarted.WhileSubscribed(5_000),
                 emptyList()
             )
 
-
+    // Create and save a new goal
     fun addGoal(
         title: String,
         category: GoalCategory,
@@ -53,31 +55,30 @@ class GoalsViewModel @Inject constructor(
         imageThumbUrl: String? = null,
         imageRegularUrl: String? = null
     ) {
-        // return if null so you never save “unknown user” goals
-        val userid = authRepo.currentUser?.uid ?: return
+        // Don't save goals if no user is signed in
+        val userId = authRepo.currentUser?.uid ?: return
 
         val newGoal = Goal(
             id = java.util.UUID.randomUUID().toString(),
-            userId = userid,
+            userId = userId,
             category = category,
             title = title.trim(),
             notes = notes,
             progress = 0,
             dateCreated = System.currentTimeMillis(),
             deadline = deadline,
-
-            // Unsplash Image
             unsplashPhotoId = unsplashPhotoId,
             imageThumbUrl = imageThumbUrl,
             imageRegularUrl = imageRegularUrl
         )
 
-        // Add to room
+        // Save to Room database
         viewModelScope.launch {
             repo.upsert(newGoal.toEntity())
         }
     }
 
+    // Update progress and handle completed/uncompleted transitions
     fun updateGoalProgress(goalId: String, newProgress: Int) {
         val p = newProgress.coerceIn(0, 100)
         val now = System.currentTimeMillis()
@@ -88,6 +89,7 @@ class GoalsViewModel @Inject constructor(
             val wasCompleted = goal.progress >= 100
             val isCompletedNow = p >= 100
 
+            // Set completed date only when crossing the 100% threshold
             val completedDate =
                 when {
                     !wasCompleted && isCompletedNow -> now
@@ -104,12 +106,14 @@ class GoalsViewModel @Inject constructor(
         }
     }
 
+    // Delete a goal by id
     fun deleteGoal(goalId: String) {
         viewModelScope.launch {
             repo.delete(goalId)
         }
     }
 
+    // Update goal details (title, category, notes, deadline, image)
     fun updateGoal(
         goalId: String,
         title: String,
@@ -136,6 +140,4 @@ class GoalsViewModel @Inject constructor(
             )
         }
     }
-
 }
-

@@ -2,10 +2,11 @@ package com.example.goalcoach.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.NavHost
+import androidx.navigation.NavHostController
 import com.example.goalcoach.authentication.AuthViewModel
 import com.example.goalcoach.screens.AddGoalScreen
 import com.example.goalcoach.screens.GoalDetailsScreen
@@ -15,35 +16,35 @@ import com.example.goalcoach.screens.InsightsScreen
 import com.example.goalcoach.screens.JournalScreen
 import com.example.goalcoach.screens.LoginScreen
 import com.example.goalcoach.screens.PlacesScreen
-import com.example.goalcoach.unsplashapi.UnsplashViewModel
+import com.example.goalcoach.viewmodels.UnsplashViewModel
 import com.example.goalcoach.viewmodels.GoalsViewModel
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.goalcoach.viewmodels.JournalViewModel
 import com.example.goalcoach.viewmodels.PlacesViewModel
 
 
 // Navigation host (navigation graph) defines all app screens and their routes.
-//      navController: controls navigation between screens
+// navController: controls navigation between screens
 @Composable
 fun MyNavHost(navController: NavHostController, authViewModel: AuthViewModel, modifier: Modifier = Modifier){
 
-    // Create one instance of GoalsViewModel shared by goals-related screens
+    // Create one instance of GoalsViewModel used across goal-related screens
     val goalsViewModel: GoalsViewModel = hiltViewModel()
 
-    // App starts at login screen
     NavHost(
         navController = navController,
         startDestination = NavItems.login.path,
         modifier = modifier
     ){
-        // Login screen entry point of the app. Navigates to home.
+
+        // LOGIN SCREEN NAVIGATION. App Entry Point. Navigates to home.
         composable(route = NavItems.login.path) {
+
             LoginScreen(vm = authViewModel)
         }
 
-        // BOTTOM BAR SCREENS
-        // HOME SCREEN NAVIGATION.
+        // HOME SCREEN NAVIGATION (Bottom Bar)
         composable(route = NavItems.home.path ) {
+
             HomeScreen(
                 authViewModel = authViewModel,
                 viewModel = goalsViewModel,
@@ -52,15 +53,20 @@ fun MyNavHost(navController: NavHostController, authViewModel: AuthViewModel, mo
                         NavItems.goalDetails.createRoute(goalId)
                     ) }
             ) }
-        composable(route = NavItems.journal.path ) {
-            val journalViewModel: JournalViewModel = hiltViewModel()
 
+        // JOURNAL SCREEN NAVIGATION (Bottom Bar)
+        composable(route = NavItems.journal.path ) {
+
+            val journalViewModel: JournalViewModel = hiltViewModel()
             JournalScreen(
                 viewModel = goalsViewModel,
                 journalViewModel = journalViewModel
             )
         }
+
+        // INSIGHT SCREEN NAVIGATION (Bottom Bar)
         composable(route = NavItems.insights.path ) {
+
             InsightsScreen(
                 viewModel = goalsViewModel,
                 onGoalClick = { goalId ->
@@ -68,8 +74,10 @@ fun MyNavHost(navController: NavHostController, authViewModel: AuthViewModel, mo
             )
         }
 
-        // GOAL SCREEN NAVIGATION. Includes FAB and clickable list.
+        // GOAL SCREEN NAVIGATION.
+        // Includes FAB and clickable list.
         composable(route = NavItems.goals.path ) {
+
             GoalScreen(
                 viewModel = goalsViewModel,
                 onAddGoal = { navController.navigate(NavItems.addGoal.path) },
@@ -85,18 +93,18 @@ fun MyNavHost(navController: NavHostController, authViewModel: AuthViewModel, mo
             )
         }
 
-        // DETAIL SCREENS
-        // Places screen accessible from Home settings menu
+        // PLACES SCREEN (Detail Screen).
+        // Accessible from Home settings menu
         composable(route = NavItems.places.path ) {
+
             val placesViewModel: PlacesViewModel = hiltViewModel()
             PlacesScreen(vm = placesViewModel)
         }
 
-        // ADD GOAL NAVIGATION
+        // ADD GOAL NAVIGATION (Detail Screen).
         composable(route = NavItems.addGoal.path ) {backStackEntry ->
 
             val unsplashVm: UnsplashViewModel = viewModel(backStackEntry)
-
             AddGoalScreen(
             viewModel = goalsViewModel,
             unsplashViewModel = unsplashVm,
@@ -104,9 +112,9 @@ fun MyNavHost(navController: NavHostController, authViewModel: AuthViewModel, mo
             onCancel = { navController.navigateUp() }
         ) }
 
-        // GOAL DETAIL NAVIGATION
-        composable(route = NavItems.goalDetails.path ) {
-                backStackEntry ->
+        // GOAL DETAIL NAVIGATION (Detail Screen).
+        composable(route = NavItems.goalDetails.path ) {backStackEntry ->
+
             val goalId = backStackEntry.arguments?.getString("goalId")
             GoalDetailsScreen(
                 viewModel = goalsViewModel,
@@ -114,11 +122,11 @@ fun MyNavHost(navController: NavHostController, authViewModel: AuthViewModel, mo
             )
         }
 
-        // EDIT GOAL NAVIGATION
+        // EDIT GOAL NAVIGATION (Detail Screen).
         composable(route = NavItems.editGoal.path) { backStackEntry ->
+
             val goalId = backStackEntry.arguments?.getString("goalId") ?: return@composable
             val unsplashVm: UnsplashViewModel = viewModel(backStackEntry)
-
             AddGoalScreen(
                 viewModel = goalsViewModel,
                 unsplashViewModel = unsplashVm,

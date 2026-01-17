@@ -8,10 +8,9 @@ import androidx.compose.runtime.Composable
 import com.example.goalcoach.navigation.NavItems
 
 
-// Bottom navigation bar displaying the main app screens,
-//      highlights the currently selected screen and handles navigation between main screens.
-//      currentRoute: the current navigation route to highlight the selected item
-//      onNavigate: callback to handle navigation when an item is clicked
+// Bottom navigation bar displaying the main app screens
+// currentRoute: the current navigation route to highlight the selected item
+// onNavigate: callback to handle navigation when an item is clicked
 @Composable
 fun MyBottomBar(currentRoute: String?, onNavigate: (String) -> Unit) {
     // Define the four main navigation screens shown in bottom bar
@@ -22,10 +21,10 @@ fun MyBottomBar(currentRoute: String?, onNavigate: (String) -> Unit) {
         navItems.forEach { item ->
             NavigationBarItem(
                 onClick = { onNavigate(item.path) },
-                selected = currentRoute == item.path,  // Highlight if currently selected
+                selected = currentRoute == item.path,  // Highlight active screen
                 label = { Text(item.title) },
                 icon = {
-                    // Display icon if not-null
+                    // Display icon if the item has one
                     item.icon?.let { Icon(imageVector = it, contentDescription = item.title) }
                 }
             )

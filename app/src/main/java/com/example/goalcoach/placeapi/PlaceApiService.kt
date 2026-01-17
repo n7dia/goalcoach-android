@@ -1,29 +1,35 @@
 package com.example.goalcoach.placeapi
 
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import retrofit2.Retrofit
-import retrofit2.converter.moshi.MoshiConverterFactory
-import okhttp3.OkHttpClient
+import javax.inject.Singleton
 import android.content.Context
 import com.google.android.gms.location.LocationServices
-import dagger.Module
-import dagger.Provides
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Singleton
+import dagger.Module
+import dagger.Provides
+import okhttp3.OkHttpClient
+import retrofit2.Retrofit
+import retrofit2.converter.moshi.MoshiConverterFactory
 
 
+// Hilt module provides all dependencies related to Places and location
 @Module
 @InstallIn(SingletonComponent::class)
 object PlacesModule {
 
-    @Provides @Singleton
+    // Shared Moshi instance for JSON parsing
+    @Provides
+    @Singleton
     fun provideMoshi(): Moshi =
         Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
 
-    @Provides @Singleton
+
+    // Retrofit API for Overpass (fetch nearby places)
+    @Provides
+    @Singleton
     fun provideOverpassApi(moshi: Moshi): PlacesApi =
         Retrofit.Builder()
             .baseUrl("https://overpass-api.de/")
@@ -31,7 +37,11 @@ object PlacesModule {
             .build()
             .create(PlacesApi::class.java)
 
-    @Provides @Singleton
+
+    // Retrofit API for Nominatim (reverse geocoding lat/lon to city/state)
+    // User-Agent header is required by Nominatim
+    @Provides
+    @Singleton
     fun provideNominatimApi(moshi: Moshi): NominatimApi {
         val client = OkHttpClient.Builder()
             .addInterceptor { chain ->
@@ -51,13 +61,22 @@ object PlacesModule {
             .create(NominatimApi::class.java)
     }
 
-    @Provides @Singleton
+
+    // Repository for querying nearby places from Overpass
+    @Provides
+    @Singleton
     fun provideOverpassRepo(api: PlacesApi): OverpassRepo = OverpassRepo(api)
 
-    @Provides @Singleton
+
+    // Repository for reverse geocoding coordinates into city/state
+    @Provides
+    @Singleton
     fun provideReverseGeocodeRepo(api: NominatimApi): ReverseGeocodeRepo = ReverseGeocodeRepo(api)
 
-    @Provides @Singleton
+
+    // Repository for accessing device location
+    @Provides
+    @Singleton
     fun provideLocationRepo(@ApplicationContext context: Context): LocationRepo {
         val fused = LocationServices.getFusedLocationProviderClient(context)
         return LocationRepo(context, fused)

@@ -1,5 +1,8 @@
 package com.example.goalcoach.screens
 
+import java.util.Date
+import java.util.Locale
+import java.text.SimpleDateFormat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,29 +35,27 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.unit.dp
-import com.example.goalcoach.viewmodels.GoalsViewModel
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import com.example.goalcoach.models.GoalCategory
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
+import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.example.goalcoach.unsplashapi.UnsplashViewModel
+import com.example.goalcoach.models.GoalCategory
+import com.example.goalcoach.viewmodels.UnsplashViewModel
+import com.example.goalcoach.viewmodels.GoalsViewModel
 
-// Add goal screen also using for editing an existing goal
+
+// Screen used for both creating a new goal and editing an existing goal
 @Composable
 fun AddGoalScreen(
     viewModel: GoalsViewModel,
@@ -63,15 +64,13 @@ fun AddGoalScreen(
     onDone: () -> Unit,
     onCancel: () -> Unit
 ) {
-    // Read current goals so we can prefill when editing
+    // Load existing goal when editing
     val goals = viewModel.goals.collectAsState().value
     val existingGoal = remember(goals, goalId) { goals.firstOrNull { it.id == goalId } }
     val isEditMode = goalId != null
 
-    // Use rememberSaveable only for primitives/Strings
+    // Form fields
     var title by rememberSaveable { mutableStateOf("") }
-
-    // For sealed objects: save the key
     var categoryKey by rememberSaveable { mutableStateOf(GoalCategory.Education.key) }
     val category = GoalCategory.fromKey(categoryKey)
 
@@ -87,7 +86,7 @@ fun AddGoalScreen(
     // Notes
     var notes by rememberSaveable { mutableStateOf("") }
 
-    // Prefill when editing
+    // Prefill fields when editing
     LaunchedEffect(existingGoal?.id) {
         existingGoal?.let { g ->
             title = g.title
@@ -100,6 +99,7 @@ fun AddGoalScreen(
         }
     }
 
+    // Basic validation
     val canSave = title.trim().isNotEmpty()
     val canUpdate = !isEditMode || existingGoal != null // if editing, require that goal still exists
 
@@ -172,7 +172,7 @@ fun AddGoalScreen(
             )
         } ?: Text("")
 
-        // Notes
+        // Notes input
         OutlinedTextField(
             value = notes,
             onValueChange = { notes = it },
@@ -183,7 +183,7 @@ fun AddGoalScreen(
             maxLines = 6
         )
 
-        // If editing but the goal no longer exists, show a hint
+        // Show warning if editing a goal that no longer exists
         if (isEditMode && existingGoal == null) {
             Text(
                 text = "This goal no longer exists.",
@@ -206,6 +206,7 @@ fun AddGoalScreen(
                     val trimmedTitle = title.trim()
                     val trimmedNotes = notes.trim()
 
+                    // Update existing goal or create a new one
                     if (isEditMode && existingGoal != null) {
                         viewModel.updateGoal(
                             goalId = existingGoal.id,
@@ -287,6 +288,7 @@ private fun DeadlineRow(
     onPickDeadline: () -> Unit,
     onClear: () -> Unit
 ) {
+    // Format deadline for display
     val formatted = remember(deadlineMillis) {
         deadlineMillis?.let { millis ->
             SimpleDateFormat("EEE, MMM d, yyyy", Locale.getDefault())

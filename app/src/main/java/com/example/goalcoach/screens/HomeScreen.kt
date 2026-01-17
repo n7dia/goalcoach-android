@@ -33,12 +33,13 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.clickable
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.goalcoach.authentication.AuthViewModel
 import com.example.goalcoach.models.Goal
 import com.example.goalcoach.viewmodels.GoalsViewModel
-import androidx.compose.foundation.clickable
+
 
 @Composable
 fun HomeScreen(authViewModel: AuthViewModel,

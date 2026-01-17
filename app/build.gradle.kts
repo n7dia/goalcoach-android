@@ -81,6 +81,11 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.7.0"))
     implementation("com.google.firebase:firebase-auth")
 
+
+    // Add Firestore
+    implementation("com.google.firebase:firebase-firestore-ktx:24.10.0")
+
+
     // Hilt
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
     implementation("com.google.dagger:hilt-android:2.57.2")

@@ -38,14 +38,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.goalcoach.scaffold.MyFAB
-import com.example.goalcoach.viewmodels.GoalsViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import androidx.compose.ui.layout.ContentScale
+import com.example.goalcoach.scaffold.MyFAB
+import com.example.goalcoach.viewmodels.GoalsViewModel
+
 
 @Composable
 fun GoalScreen(
@@ -70,13 +71,6 @@ fun GoalScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            item {
-                Text(
-                    "My Goals",
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-            }
 
             if (pendingGoals.isEmpty()) {
                 item {

@@ -76,17 +76,6 @@ class LocationRepo(
         }.getOrNull()
     }
 
-    /*
-    // Returns the last known cached location (may be stale)
-    suspend fun getLastLocationOrNull(): Location? {
-        val fine = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
-        val coarse = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION)
-
-        if (fine != PackageManager.PERMISSION_GRANTED && coarse != PackageManager.PERMISSION_GRANTED) {
-            return null
-        }
-        return fused.lastLocation.await()
-    }*/
 
     // Actively requests a fresh location update
     suspend fun getFreshLocationOrNull(): Location? {

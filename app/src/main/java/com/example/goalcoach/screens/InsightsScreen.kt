@@ -30,6 +30,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.geometry.Offset
@@ -62,77 +63,106 @@ fun InsightsScreen(
             .apply { timeZone = java.util.TimeZone.getTimeZone("EST") }
     }
 
-    LazyColumn(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .background(Color.White)
     ) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
 
 
-        // Completed Goals Section
-        item {
-            Text(
-                "Completed Goals",
-                style = MaterialTheme.typography.headlineMedium
-            )
-        }
-
-        if (completedGoals.isEmpty()) {
+            // Completed Goals Section
             item {
                 Text(
-                    "No completed goals yet.",
-                    style = MaterialTheme.typography.bodyLarge
+                    "Completed Goals",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1C1C1E)
                 )
             }
-        } else {
-            items(
-                items = completedGoals,
-                key = { it.id }
-            ) { goal ->
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(
-                        modifier = Modifier.padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(2.dp)
-                    ) {
-                        Text(goal.title, style = MaterialTheme.typography.bodyLarge)
-                        Spacer(Modifier.height(2.dp))
-                        Text(goal.category.key, style = MaterialTheme.typography.bodySmall)
 
-                        val completedText = goal.dateCompleted?.let {
-                            "Completed: ${dateFormatter.format(Date(it))}"
-                        } ?: "Completed: (date unknown)"
-
-                        Text(completedText, style = MaterialTheme.typography.bodySmall)
-                    }
-                }
-            }
-        }
-
-        // Confidence Trends Section
-        item {
-            Text(
-                "Confidence Trends",
-                style = MaterialTheme.typography.headlineMedium
-            )
-        }
-
-        item {
-            if (trendUiState.isLoading) {
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .padding(32.dp)
-                            .align(Alignment.CenterHorizontally)
+            if (completedGoals.isEmpty()) {
+                item {
+                    Text(
+                        "No completed goals yet.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color(0xFF8E8E93)
                     )
                 }
             } else {
-                ConfidenceTrendCard(series = trendUiState.series)
+                items(
+                    items = completedGoals,
+                    key = { it.id }
+                ) { goal ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color.White
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text(
+                                goal.title,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color(0xFF1C1C1E)
+                            )
+                            Text(
+                                goal.category.key,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFF757575),
+                                fontWeight = FontWeight.Medium
+                            )
+
+                            val completedText = goal.dateCompleted?.let {
+                                "Completed: ${dateFormatter.format(Date(it))}"
+                            } ?: "Completed: (date unknown)"
+
+                            Text(
+                                completedText,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFF8E8E93)
+                            )
+                        }
+                    }
+                }
             }
+
+            // Confidence Trends Section
+            item {
+                if (trendUiState.isLoading) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color.White
+                        )
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .padding(32.dp)
+                                .align(Alignment.CenterHorizontally),
+                            color = Color(0xFF757575)
+                        )
+                    }
+                } else {
+                    ConfidenceTrendCard(series = trendUiState.series)
+                }
+            }
+
+
+
         }
-
-
-
     }
 }
 
@@ -142,26 +172,33 @@ fun ConfidenceTrendCard(
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        )
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(20.dp)
         ) {
             Text(
                 text = "Confidence Trends",
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1C1C1E)
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             when {
                 series.isEmpty() -> {
                     Text(
                         text = "No confidence data available yet",
                         style = MaterialTheme.typography.bodyMedium,
+                        color = Color(0xFF8E8E93),
                         modifier = Modifier.padding(vertical = 16.dp)
                     )
                 }
@@ -169,7 +206,7 @@ fun ConfidenceTrendCard(
                     // Legend
                     Legend(series = series)
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(20.dp))
 
                     // Chart
                     ConfidenceChart(
@@ -192,9 +229,18 @@ fun ConfidenceTrendScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
+        containerColor = Color.White,
         topBar = {
             TopAppBar(
-                title = { Text("Confidence Trends") }
+                title = { 
+                    Text(
+                        "Confidence Trends",
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.White
+                )
             )
         }
     ) { padding ->
@@ -206,34 +252,37 @@ fun ConfidenceTrendScreen(
             when {
                 uiState.isLoading -> {
                     CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center)
+                        modifier = Modifier.align(Alignment.Center),
+                        color = Color(0xFF757575)
                     )
                 }
                 uiState.series.isEmpty() -> {
                     Text(
                         text = "No confidence data available yet",
                         modifier = Modifier.align(Alignment.Center),
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color(0xFF8E8E93)
                     )
                 }
                 else -> {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(16.dp)
+                            .padding(20.dp)
                     ) {
                         Text(
                             text = "Confidence Rating Over Time",
                             style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1C1C1E)
                         )
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
 
                         // Legend
                         Legend(series = uiState.series)
 
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(20.dp))
 
                         // Chart
                         ConfidenceChart(
@@ -264,12 +313,16 @@ fun Legend(series: List<ConfidenceSeries>) {
                 Box(
                     modifier = Modifier
                         .size(16.dp)
-                        .background(Color(s.color))
+                        .background(
+                            Color(s.color),
+                            RoundedCornerShape(4.dp)
+                        )
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(10.dp))
                 Text(
                     text = s.label,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color(0xFF1C1C1E)
                 )
             }
         }
@@ -307,13 +360,13 @@ fun ConfidenceChart(
 
         // Draw axes
         drawLine(
-            color = Color.Gray,
+            color = Color(0xFFE5E5EA),
             start = Offset(padding, padding),
             end = Offset(padding, height - padding),
             strokeWidth = 2f
         )
         drawLine(
-            color = Color.Gray,
+            color = Color(0xFFE5E5EA),
             start = Offset(padding, height - padding),
             end = Offset(width - padding, height - padding),
             strokeWidth = 2f
@@ -334,7 +387,7 @@ fun ConfidenceChart(
         for (i in 0..10) {
             val y = mapY(i.toFloat())
             drawLine(
-                color = Color.LightGray.copy(alpha = 0.3f),
+                color = Color(0xFFF2F2F7),
                 start = Offset(padding, y),
                 end = Offset(width - padding, y),
                 strokeWidth = 1f

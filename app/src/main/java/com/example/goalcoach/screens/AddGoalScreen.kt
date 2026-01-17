@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
@@ -31,6 +32,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -46,8 +48,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight.Companion.Bold
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.goalcoach.models.GoalCategory
@@ -103,139 +106,174 @@ fun AddGoalScreen(
     val canSave = title.trim().isNotEmpty()
     val canUpdate = !isEditMode || existingGoal != null // if editing, require that goal still exists
 
-    Column(
+    Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+            .fillMaxSize()
+            .background(Color.White)
     ) {
-        // Category dropdown
-        CategoryDropdown(
-            selectedKey = categoryKey,
-            onSelectedKey = { categoryKey = it }
-        )
-
-        // Title
-        OutlinedTextField(
-            value = title,
-            onValueChange = { title = it },
-            label = { Text("Title") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        // Deadline
-        DeadlineRow(
-            deadlineMillis = deadlineMillis,
-            onPickDeadline = { showDatePicker = true },
-            onClear = { deadlineMillis = null }
-        )
-
-        // Date Picker
-        if (showDatePicker) {
-            val initialPickerMillis = deadlineMillis ?: System.currentTimeMillis()
-
-            GoalDatePicker(
-                initialSelectedMillis = initialPickerMillis,
-                onDismiss = { showDatePicker = false },
-                onConfirm = { selectedMillis ->
-                    deadlineMillis = selectedMillis
-                    showDatePicker = false
-                }
-            )
-        }
-
-
-        // Image selector: search + preview
-        UnsplashPhotoSection(
-            viewModel = unsplashViewModel,
-            initialPhotoId = existingGoal?.unsplashPhotoId,
-            initialThumbUrl = existingGoal?.imageThumbUrl,
-            initialRegularUrl = existingGoal?.imageRegularUrl,
-
-            selectedPhotoId = selectedPhotoId,
-            selectedThumbUrl = selectedThumbUrl,
-            selectedRegularUrl = selectedRegularUrl,
-
-            onAutoSelect = { photoId, thumbUrl, regularUrl ->
-                selectedPhotoId = photoId
-                selectedThumbUrl = thumbUrl
-                selectedRegularUrl = regularUrl
-            }
-        )
-
-
-        // Selected image confirmation
-        selectedPhotoId?.let {
-            Text(
-                text = "Selected image: ${selectedPhotoId}",
-                style = MaterialTheme.typography.labelSmall
-            )
-        } ?: Text("")
-
-        // Notes input
-        OutlinedTextField(
-            value = notes,
-            onValueChange = { notes = it },
-            label = { Text("Notes") },
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 120.dp),
-            maxLines = 6
-        )
-
-        // Show warning if editing a goal that no longer exists
-        if (isEditMode && existingGoal == null) {
-            Text(
-                text = "This goal no longer exists.",
-                color = MaterialTheme.colorScheme.error
-            )
-        }
-
-        // Action Buttons
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
-            OutlinedButton(
-                onClick = onCancel,
-                modifier = Modifier.weight(1f)
-            ) { Text("Cancel") }
+            // Category dropdown
+            CategoryDropdown(
+                selectedKey = categoryKey,
+                onSelectedKey = { categoryKey = it }
+            )
 
-            Button(
-                onClick = {
-                    val trimmedTitle = title.trim()
-                    val trimmedNotes = notes.trim()
+            // Title
+            OutlinedTextField(
+                value = title,
+                onValueChange = { title = it },
+                label = { Text("Title") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF757575),
+                    unfocusedBorderColor = Color(0xFFE5E5EA)
+                )
+            )
 
-                    // Update existing goal or create a new one
-                    if (isEditMode && existingGoal != null) {
-                        viewModel.updateGoal(
-                            goalId = existingGoal.id,
-                            title = trimmedTitle,
-                            category = category,
-                            notes = trimmedNotes,
-                            deadline = deadlineMillis,
-                            unsplashPhotoId = selectedPhotoId,
-                            imageThumbUrl = selectedThumbUrl,
-                            imageRegularUrl = selectedRegularUrl
-                        )
-                    } else {
-                        viewModel.addGoal(
-                            title = trimmedTitle,
-                            category = category,
-                            notes = trimmedNotes,
-                            deadline = deadlineMillis,
-                            unsplashPhotoId = selectedPhotoId,
-                            imageThumbUrl = selectedThumbUrl,
-                            imageRegularUrl = selectedRegularUrl
-                        )
+            // Deadline
+            DeadlineRow(
+                deadlineMillis = deadlineMillis,
+                onPickDeadline = { showDatePicker = true },
+                onClear = { deadlineMillis = null }
+            )
+
+            // Date Picker
+            if (showDatePicker) {
+                val initialPickerMillis = deadlineMillis ?: System.currentTimeMillis()
+
+                GoalDatePicker(
+                    initialSelectedMillis = initialPickerMillis,
+                    onDismiss = { showDatePicker = false },
+                    onConfirm = { selectedMillis ->
+                        deadlineMillis = selectedMillis
+                        showDatePicker = false
                     }
+                )
+            }
 
-                    onDone()
-                },
-                enabled = canSave && canUpdate,
-                modifier = Modifier.weight(1f)
+
+            // Image selector: search + preview
+            UnsplashPhotoSection(
+                viewModel = unsplashViewModel,
+                initialPhotoId = existingGoal?.unsplashPhotoId,
+                initialThumbUrl = existingGoal?.imageThumbUrl,
+                initialRegularUrl = existingGoal?.imageRegularUrl,
+
+                selectedPhotoId = selectedPhotoId,
+                selectedThumbUrl = selectedThumbUrl,
+                selectedRegularUrl = selectedRegularUrl,
+
+                onAutoSelect = { photoId, thumbUrl, regularUrl ->
+                    selectedPhotoId = photoId
+                    selectedThumbUrl = thumbUrl
+                    selectedRegularUrl = regularUrl
+                }
+            )
+
+
+            // Selected image confirmation
+            selectedPhotoId?.let {
+                Text(
+                    text = "Selected image: ${selectedPhotoId}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color(0xFF8E8E93)
+                )
+            } ?: Text("")
+
+            // Notes input
+            OutlinedTextField(
+                value = notes,
+                onValueChange = { notes = it },
+                label = { Text("Notes") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 120.dp),
+                maxLines = 6,
+                shape = RoundedCornerShape(16.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF757575),
+                    unfocusedBorderColor = Color(0xFFE5E5EA)
+                )
+            )
+
+            // Show warning if editing a goal that no longer exists
+            if (isEditMode && existingGoal == null) {
+                Text(
+                    text = "This goal no longer exists.",
+                    color = Color(0xFFFF3B30)
+                )
+            }
+
+            // Action Buttons
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text("Save")
+                OutlinedButton(
+                    onClick = onCancel,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = Color(0xFF757575)
+                    )
+                ) { 
+                    Text("Cancel", fontWeight = FontWeight.Medium)
+                }
+
+                Button(
+                    onClick = {
+                        val trimmedTitle = title.trim()
+                        val trimmedNotes = notes.trim()
+
+                        // Update existing goal or create a new one
+                        if (isEditMode && existingGoal != null) {
+                            viewModel.updateGoal(
+                                goalId = existingGoal.id,
+                                title = trimmedTitle,
+                                category = category,
+                                notes = trimmedNotes,
+                                deadline = deadlineMillis,
+                                unsplashPhotoId = selectedPhotoId,
+                                imageThumbUrl = selectedThumbUrl,
+                                imageRegularUrl = selectedRegularUrl
+                            )
+                        } else {
+                            viewModel.addGoal(
+                                title = trimmedTitle,
+                                category = category,
+                                notes = trimmedNotes,
+                                deadline = deadlineMillis,
+                                unsplashPhotoId = selectedPhotoId,
+                                imageThumbUrl = selectedThumbUrl,
+                                imageRegularUrl = selectedRegularUrl
+                            )
+                        }
+
+                        onDone()
+                    },
+                    enabled = canSave && canUpdate,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                ) {
+                    Text(
+                        if (isEditMode) "Update" else "Save",
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
         }
     }
@@ -247,8 +285,8 @@ private fun CategoryDropdown(
     selectedKey: String,
     onSelectedKey: (String) -> Unit
 ) {
+    val selected = GoalCategory.fromKey(selectedKey)
     var expanded by remember { mutableStateOf(false) }
-    val selected = remember(selectedKey) { GoalCategory.fromKey(selectedKey) }
 
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -261,7 +299,12 @@ private fun CategoryDropdown(
             label = { Text("Category") },
             modifier = Modifier
                 .fillMaxWidth()
-                .menuAnchor()
+                .menuAnchor(),
+            shape = RoundedCornerShape(16.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color(0xFF757575),
+                unfocusedBorderColor = Color(0xFFE5E5EA)
+            )
         )
 
         ExposedDropdownMenu(
@@ -310,7 +353,9 @@ private fun DeadlineRow(
         Spacer(Modifier.weight(1f))
 
         if (deadlineMillis != null) {
-            TextButton(onClick = onClear) { Text("Clear") }
+            TextButton(onClick = onClear) { 
+                Text("Clear", color = Color(0xFF757575))
+            }
         }
     }
 }
@@ -329,11 +374,13 @@ private fun GoalDatePicker(
         onDismissRequest = onDismiss,
         confirmButton = {
             TextButton(onClick = { onConfirm(state.selectedDateMillis) }) {
-                Text("OK")
+                Text("OK", color = Color(0xFF757575))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { 
+                Text("Cancel", color = Color(0xFF757575))
+            }
         }
     ) {
         DatePicker(state = state)
@@ -374,7 +421,12 @@ fun UnsplashPhotoSection(
         }
     }
 
-    Text("Image", style = MaterialTheme.typography.titleMedium)
+    Text(
+        "Image", 
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.SemiBold,
+        color = Color(0xFF1C1C1E)
+    )
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -386,7 +438,12 @@ fun UnsplashPhotoSection(
             onValueChange = { viewModel.queryInput.value = it },
             label = { Text("Search term") },
             modifier = Modifier.weight(1f),
-            singleLine = true
+            singleLine = true,
+            shape = RoundedCornerShape(16.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color(0xFF757575),
+                unfocusedBorderColor = Color(0xFFE5E5EA)
+            )
         )
 
         // Refresh
@@ -394,7 +451,11 @@ fun UnsplashPhotoSection(
             onClick = { viewModel.refreshNext() },
             enabled = query.trim().length >= 2 && !loading
         ) {
-            Icon(Icons.Default.Refresh, contentDescription = "Next image")
+            Icon(
+                Icons.Default.Refresh, 
+                contentDescription = "Next image",
+                tint = if (query.trim().length >= 2 && !loading) Color(0xFF757575) else Color(0xFFC7C7CC)
+            )
         }
 
         // Clear selection (works even if there is no current photo)
@@ -402,10 +463,14 @@ fun UnsplashPhotoSection(
             onClick = {
                 viewModel.clearSelection()
                 onAutoSelect(null, null, null)
-                      },
+            },
             enabled = !loading
         ) {
-            Icon(Icons.Default.Close, contentDescription = "Clear image")
+            Icon(
+                Icons.Default.Close, 
+                contentDescription = "Clear image",
+                tint = if (!loading) Color(0xFF757575) else Color(0xFFC7C7CC)
+            )
         }
     }
 
@@ -415,11 +480,13 @@ fun UnsplashPhotoSection(
     val previewUrl = selectedRegularUrl ?: selectedThumbUrl
 
     Surface(
-        tonalElevation = 1.dp,
+        tonalElevation = 0.dp,
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .height(160.dp)
+            .height(160.dp),
+        shadowElevation = 1.dp,
+        color = Color(0xFFF2F2F7)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
 
@@ -439,10 +506,13 @@ fun UnsplashPhotoSection(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
+                            .background(Color.White.copy(alpha = 0.8f)),
                         contentAlignment = Alignment.Center
                     ) {
-                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp))
+                        LinearProgressIndicator(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                            color = Color(0xFF757575)
+                        )
                     }
                 }
 
@@ -476,9 +546,14 @@ private fun OverlayMessage(text: String) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.70f)),
+            .background(Color.White.copy(alpha = 0.85f)),
         contentAlignment = Alignment.Center
     ) {
-        Text(text, style = MaterialTheme.typography.bodyMedium, fontWeight = Bold)
+        Text(
+            text, 
+            style = MaterialTheme.typography.bodyMedium, 
+            fontWeight = FontWeight.Medium,
+            color = Color(0xFF8E8E93)
+        )
     }
 }

@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
@@ -59,6 +60,7 @@ fun GoalScreen(
     val pendingGoals = remember(goals) { goals.filter { !it.isCompleted } }.sortedBy { it.dateCreated }
 
     Scaffold(
+        containerColor = Color.White,
         floatingActionButton = {
             MyFAB(onClick = onAddGoal)
         }
@@ -68,15 +70,16 @@ fun GoalScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
             if (pendingGoals.isEmpty()) {
                 item {
                     Text(
                         "No pending goals 🎉",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color(0xFF8E8E93)
                     )
                 }
             } else {
@@ -114,52 +117,79 @@ private fun GoalRow(
     if (showConfirmDelete) {
         AlertDialog(
             onDismissRequest = { showConfirmDelete = false },
-            title = { Text("Delete goal?") },
-            text = { Text("This can’t be undone.") },
+            title = { 
+                Text(
+                    "Delete goal?",
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF1C1C1E)
+                )
+            },
+            text = { 
+                Text(
+                    "This can't be undone.",
+                    color = Color(0xFF8E8E93)
+                )
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
                         onDelete()
                         showConfirmDelete = false
                     }
-                ) { Text("Delete") }
+                ) { 
+                    Text("Delete", color = Color(0xFFFF3B30), fontWeight = FontWeight.SemiBold)
+                }
             },
             dismissButton = {
-                TextButton(onClick = { showConfirmDelete = false }) { Text("Cancel") }
-            }
+                TextButton(onClick = { showConfirmDelete = false }) { 
+                    Text("Cancel", color = Color(0xFF757575))
+                }
+            },
+            shape = RoundedCornerShape(16.dp)
         )
     }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Image thumbnail placeholder
             Surface(
                 shape = RoundedCornerShape(12.dp),
-                tonalElevation = 1.dp,
-                modifier = Modifier.size(56.dp)
+                tonalElevation = 0.dp,
+                modifier = Modifier.size(56.dp),
+                color = Color(0xFFF2F2F7)
             ) {
                 val context = LocalContext.current
 
                 if (imageThumbUrl.isNullOrBlank()) {
-                    Box(Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center) {
-                        Text("IMG", style = MaterialTheme.typography.labelLarge)
+                    Box(
+                        Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "IMG",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = Color(0xFF8E8E93)
+                        )
                     }
                 } else {
                     AsyncImage(
                         model = ImageRequest.Builder(context)
                             .data(imageThumbUrl)
                             .crossfade(true)
-                            .size(112) // Decode close to 56dp*2 (safe for memory)
+                            .size(112)
                             .build(),
                         contentDescription = title,
                         contentScale = ContentScale.Crop,
@@ -175,18 +205,28 @@ private fun GoalRow(
                     .weight(1f)
                     .clickable { onOpen() }
             ) {
-                Text(title, style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF1C1C1E)
+                )
                 Text(
                     category,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary
+                    color = Color(0xFF757575),
+                    fontWeight = FontWeight.Medium
                 )
             }
 
             // Overflow menu
             Box {
                 IconButton(onClick = { menuExpanded = true }) {
-                    Icon(Icons.Default.MoreVert, contentDescription = "More options")
+                    Icon(
+                        Icons.Default.MoreVert,
+                        contentDescription = "More options",
+                        tint = Color(0xFF8E8E93)
+                    )
                 }
 
                 DropdownMenu(
@@ -195,15 +235,27 @@ private fun GoalRow(
                 ) {
                     DropdownMenuItem(
                         text = { Text("Edit") },
-                        leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
+                        leadingIcon = { 
+                            Icon(
+                                Icons.Default.Edit,
+                                contentDescription = null,
+                                tint = Color(0xFF757575)
+                            )
+                        },
                         onClick = {
                             menuExpanded = false
                             onEdit()
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text("Delete") },
-                        leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) },
+                        text = { Text("Delete", color = Color(0xFFFF3B30)) },
+                        leadingIcon = { 
+                            Icon(
+                                Icons.Default.Delete,
+                                contentDescription = null,
+                                tint = Color(0xFFFF3B30)
+                            )
+                        },
                         onClick = {
                             menuExpanded = false
                             showConfirmDelete = true

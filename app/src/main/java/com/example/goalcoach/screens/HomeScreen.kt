@@ -42,9 +42,11 @@ import com.example.goalcoach.viewmodels.GoalsViewModel
 
 
 @Composable
-fun HomeScreen(authViewModel: AuthViewModel,
-               viewModel: GoalsViewModel,
-               onGoalClick: (String) -> Unit) {
+fun HomeScreen(
+    authViewModel: AuthViewModel,
+    viewModel: GoalsViewModel,
+    onGoalClick: (String) -> Unit
+) {
 
     // State for username
     val authState by authViewModel.state.collectAsState()
@@ -58,42 +60,52 @@ fun HomeScreen(authViewModel: AuthViewModel,
     val pendingGoals = remember(goals) { goals.filter { !it.isCompleted } }
 
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+            .background(Color.White)
     ) {
-        Text(
-            "Hi $displayName!",
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp)
-        )
-
-        Surface(
-            shape = RoundedCornerShape(24.dp),
-            tonalElevation = 1.dp,
-            color = MaterialTheme.colorScheme.secondaryContainer,
+        Column(
             modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .fillMaxWidth()
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Discipline beats motivation.",
-                style = MaterialTheme.typography.bodyLarge,
-                fontStyle = FontStyle.Italic,
-                modifier = Modifier.padding(24.dp)
+                "Hi $displayName!",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1C1C1E),
+                modifier = Modifier.padding(vertical = 8.dp, horizontal = 8.dp)
             )
-        }
 
-        VisionBoardTheme {
-            VisionBoard(
-            goals = pendingGoals,
-            modifier = Modifier,
-                onGoalClick = onGoalClick
-            )
-        }
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                tonalElevation = 0.dp,
+                shadowElevation = 2.dp,
+                color = Color(0xFFF2F2F7),
+                modifier = Modifier
+                    .padding(horizontal = 8.dp)
+                    .fillMaxWidth()
+            ) {
+                Text(
+                    text = "Discipline beats motivation.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontStyle = FontStyle.Italic,
+                    color = Color(0xFF1C1C1E),
+                    modifier = Modifier.padding(20.dp)
+                )
+            }
 
+            VisionBoardTheme {
+                VisionBoard(
+                    goals = pendingGoals,
+                    modifier = Modifier,
+                    onGoalClick = onGoalClick
+                )
+            }
+
+        }
     }
 }
 
@@ -115,20 +127,22 @@ fun VisionBoard(
             Text(
                 text = "Add your first goal to get started!",
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = Color(0xFF8E8E93)
             )
         }
     } else {
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(8.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = modifier.fillMaxSize()
         ) {
             items(sortedGoals) { goal ->
-                GoalCard(goal = goal,
-                    Modifier.clickable{ onGoalClick(goal.id) })
+                GoalCard(
+                    goal = goal,
+                    Modifier.clickable { onGoalClick(goal.id) }
+                )
             }
         }
     }
@@ -148,12 +162,13 @@ fun GoalCard(
             .fillMaxWidth()
             .height(200.dp),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFF2F2F7)
+        )
     ) {
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFF90b4ce)) // No picture background colour
+            modifier = Modifier.fillMaxSize()
         ) {
             if (hasImage) {
                 // Use AsyncImage from Coil when image is available
@@ -161,7 +176,7 @@ fun GoalCard(
                     model = ImageRequest.Builder(context)
                         .data(imageUrl)
                         .crossfade(true)
-                        .size(600) // decode-bound for a 200dp card; avoids huge bitmaps
+                        .size(600)
                         .build(),
                     contentDescription = goal.title,
                     contentScale = ContentScale.Crop,
@@ -187,14 +202,14 @@ fun GoalCard(
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
-                    .padding(12.dp)
+                    .padding(16.dp)
             ) {
                 // Goal title
                 Text(
                     text = goal.title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = if (hasImage) Color.White else Color.Black,
+                    color = if (hasImage) Color.White else Color(0xFF1C1C1E),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -202,14 +217,15 @@ fun GoalCard(
                 // Category chip
                 Surface(
                     shape = RoundedCornerShape(8.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f),
-                    modifier = Modifier.padding(bottom = 4.dp)
+                    color = Color.White,
+                    modifier = Modifier.padding(top = 8.dp)
                 ) {
                     Text(
                         text = goal.category.key,
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.Black,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
                     )
                 }
             }
@@ -222,9 +238,9 @@ fun GoalCard(
 fun VisionBoardTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = lightColorScheme(
-            primary = Color(0xFF6750A4),
-            primaryContainer = Color(0xFFE9DDFF),
-            onPrimaryContainer = Color(0xFF22005D)
+            primary = Color(0xFFFFFFFF),
+            primaryContainer = Color(0xFFE5F2FF),
+            onPrimaryContainer = Color(0xFF003D7A)
         ),
         content = content
     )

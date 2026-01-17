@@ -44,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -81,14 +82,15 @@ fun GoalDetailsScreen(
 
     // Scaffold for snackbar
     Scaffold(
+        containerColor = Color.White,
         snackbarHost = {
             SnackbarHost(snackBarHostState) { snackbarData ->
                 Snackbar(
                     snackbarData = snackbarData,
                     shape = RoundedCornerShape(16.dp),
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    actionColor = MaterialTheme.colorScheme.primary
+                    containerColor = Color(0xFF757575),
+                    contentColor = Color.White,
+                    actionColor = Color.White
                 )
             }
         }
@@ -96,13 +98,19 @@ fun GoalDetailsScreen(
 
         if (goal == null) {
             Box(
-                modifier = Modifier.fillMaxSize().padding(16.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+                    .background(Color.White),
                 contentAlignment = Alignment.Center
             ) {
-                Text("No goal selected")
+                Text(
+                    "No goal selected",
+                    color = Color(0xFF8E8E93)
+                )
             }
 
-        }else{
+        } else {
             val now = System.currentTimeMillis()
             val elapsedDays = max(0, ((now - goal.dateCreated) / (24L * 60 * 60 * 1000)).toInt())
 
@@ -111,41 +119,48 @@ fun GoalDetailsScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
+                    .background(Color.White)
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
 
                 // Header: image + category + title
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalAlignment = Alignment.Top
                 ) {
                     // Image placeholder (top-left)
                     Surface(
                         shape = RoundedCornerShape(16.dp),
-                        tonalElevation = 1.dp,
-                        modifier = Modifier.size(88.dp)
+                        tonalElevation = 0.dp,
+                        shadowElevation = 2.dp,
+                        modifier = Modifier.size(88.dp),
+                        color = Color(0xFFF2F2F7)
                     ) {
                         Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                            modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
                             val context = LocalContext.current
 
                             if (goal.imageThumbUrl.isNullOrBlank()) {
-                                Box(Modifier.fillMaxSize(),
-                                    contentAlignment = Alignment.Center) {
-                                    Text("IMG", style = MaterialTheme.typography.labelLarge)
+                                Box(
+                                    Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        "IMG",
+                                        style = MaterialTheme.typography.labelLarge,
+                                        color = Color(0xFF8E8E93)
+                                    )
                                 }
                             } else {
                                 AsyncImage(
                                     model = ImageRequest.Builder(context)
                                         .data(goal.imageThumbUrl)
                                         .crossfade(true)
-                                        .size(112) // Decode close to 56dp*2 (safe for memory)
+                                        .size(112)
                                         .build(),
                                     contentDescription = goal.title,
                                     contentScale = ContentScale.Crop,
@@ -157,38 +172,54 @@ fun GoalDetailsScreen(
 
                     Column(
                         modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
                             text = goal.category.key,
                             style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.primary
+                            color = Color(0xFF757575),
+                            fontWeight = FontWeight.SemiBold
                         )
 
                         Text(
                             text = goal.title,
-                            style = MaterialTheme.typography.headlineSmall
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1C1C1E)
                         )
                     }
                 }
 
                 // Elapsed days + Deadline
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(
-                        text = "Elapsed: $elapsedDays day${if (elapsedDays == 1) "" else "s"}",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-
-                    goal.deadline?.let { deadlineMillis ->
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    tonalElevation = 0.dp,
+                    shadowElevation = 1.dp,
+                    modifier = Modifier.fillMaxWidth(),
+                    color = Color(0xFFF2F2F7)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         Text(
-                            text = "Deadline: ${dateFormatter.format(Date(deadlineMillis))}",
-                            style = MaterialTheme.typography.bodyLarge
+                            text = "Elapsed: $elapsedDays day${if (elapsedDays == 1) "" else "s"}",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color(0xFF1C1C1E)
                         )
-                    } ?: Text(
-                        text = "No deadline",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
 
+                        goal.deadline?.let { deadlineMillis ->
+                            Text(
+                                text = "Deadline: ${dateFormatter.format(Date(deadlineMillis))}",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = Color(0xFF1C1C1E)
+                            )
+                        } ?: Text(
+                            text = "No deadline",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color(0xFF8E8E93)
+                        )
+                    }
                 }
 
                 // Progress section
@@ -201,17 +232,26 @@ fun GoalDetailsScreen(
 
                 // Notes only if not blank
                 if (goal.notes.isNotBlank()) {
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("Notes", style = MaterialTheme.typography.titleMedium)
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(
+                            "Notes",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFF1C1C1E)
+                        )
                         Surface(
                             shape = RoundedCornerShape(16.dp),
-                            tonalElevation = 1.dp,
-                            modifier = Modifier.fillMaxWidth()
+                            tonalElevation = 0.dp,
+                            shadowElevation = 1.dp,
+                            modifier = Modifier.fillMaxWidth(),
+                            color = Color(0xFFF2F2F7)
                         ) {
                             Text(
                                 text = goal.notes,
                                 style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(12.dp)
+                                color = Color(0xFF1C1C1E),
+                                modifier = Modifier
+                                    .padding(16.dp)
                                     .verticalScroll(rememberScrollState())
                             )
                         }
@@ -237,47 +277,72 @@ private fun ProgressSection(
 ) {
     var sliderValue by remember(progress) { mutableFloatStateOf(progress.toFloat()) }
 
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        tonalElevation = 0.dp,
+        shadowElevation = 1.dp,
+        modifier = Modifier.fillMaxWidth(),
+        color = Color(0xFFF2F2F7)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text("Progress", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.weight(1f))
-            Text("${sliderValue.toInt()}%", style = MaterialTheme.typography.bodyMedium)
-        }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "Progress",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF1C1C1E)
+                )
+                Spacer(Modifier.weight(1f))
+                Text(
+                    "${sliderValue.toInt()}%",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF757575)
+                )
+            }
 
-        // Stack progress bar and slider together
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp)
-        ) {
-            // Progress bar as background
-            LinearProgressIndicator(
-                progress = { sliderValue / 100f },
+            // Stack progress bar and slider together
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 10.dp)
-                    .height(12.dp)
-                    .align(Alignment.Center),
-            )
-
-            // Slider overlaid on top with transparent track
-            Slider(
-                value = sliderValue,
-                onValueChange = { sliderValue = it },
-                valueRange = 0f..100f,
-                onValueChangeFinished = {
-                    onProgressChangeFinished(sliderValue.toInt())
-                },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
-                colors = SliderDefaults.colors(
-                    // Make the track transparent
-                    activeTrackColor = Color.Transparent,
-                    inactiveTrackColor = Color.Transparent
+                    .padding(vertical = 4.dp)
+            ) {
+                // Progress bar as background
+                LinearProgressIndicator(
+                    progress = { sliderValue / 100f },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 10.dp)
+                        .height(12.dp)
+                        .align(Alignment.Center),
+                    color = Color(0xFF757575),
+                    trackColor = Color(0xFFE5E5EA),
                 )
-            )
+
+                // Slider overlaid on top with transparent track
+                Slider(
+                    value = sliderValue,
+                    onValueChange = { sliderValue = it },
+                    valueRange = 0f..100f,
+                    onValueChangeFinished = {
+                        onProgressChangeFinished(sliderValue.toInt())
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 10.dp),
+                    colors = SliderDefaults.colors(
+                        thumbColor = Color(0xFF757575),
+                        activeTrackColor = Color.Transparent,
+                        inactiveTrackColor = Color.Transparent
+                    )
+                )
+            }
         }
     }
 }
